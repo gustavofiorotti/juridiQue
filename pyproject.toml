@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "facilitador-processos-judiciais"
+version = "0.1.0"
+description = "Facilitador de Entendimento de Processos Judiciais"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "Flask<2.3.0",
+    "Werkzeug<2.3.0",
+    "Flask-SQLAlchemy>=3.1.1",
+    "SQLAlchemy>=2.0.0",
+    "pyodbc>=5.1.0",
+    "Flask-WTF>=1.2.1",
+    "Flask-Login>=0.6.3",
+    "Flask-Admin>=1.6.1",
+    "pdfplumber>=0.11.0",
+    "python-dotenv>=1.0.1",
+    "invoke>=2.2.0",
+    "google-generativeai>=0.4.0",
+    "Flask-Migrate>=4.0.7"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0"
+]

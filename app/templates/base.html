@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Facilitador Jurídico{% endblock %}</title>
+    <!-- Bulma CSS CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <!-- FontAwesome para ícones -->
+    <script defer src="https://use.fontawesome.com/releases/v5.15.4/js/all.js"></script>
+    <style>
+        /* Estilo simples para tooltip nativo nos termos jurídicos */
+        .juridiquess-tooltip {
+            border-bottom: 1px dashed currentColor;
+            cursor: help;
+        }
+    </style>
+</head>
+<body>
+
+    {# ═══════════════════════════════════════════════════════════════
+       Barra de navegação — visível em todas as páginas
+       Exibe links contextuais de acordo com o estado de autenticação.
+       ═══════════════════════════════════════════════════════════════ #}
+    <nav class="navbar is-light" role="navigation" aria-label="navegação principal">
+        <div class="container" style="max-width: 800px;">
+
+            <div class="navbar-brand">
+                <a class="navbar-item has-text-weight-bold is-size-5" href="{{ url_for('auth.login') }}">
+                    ⚖️ Facilitador Jurídico
+                </a>
+                <!-- Hamburger para mobile -->
+                <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                </a>
+            </div>
+
+            <div id="navMenu" class="navbar-menu">
+                <div class="navbar-end">
+                    {% if current_user.is_authenticated %}
+                        <a class="navbar-item" href="{{ url_for('interpreter.index') }}">
+                            <span class="icon"><i class="fas fa-cloud-upload-alt"></i></span>
+                            <span>Painel</span>
+                        </a>
+                        <a class="navbar-item" href="{{ url_for('interpreter.historico') }}">
+                            <span class="icon"><i class="fas fa-history"></i></span>
+                            <span>Histórico</span>
+                        </a>
+                        <div class="navbar-item">
+                            <a class="button is-light is-small" href="{{ url_for('auth.logout') }}">
+                                <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                                <span>Sair</span>
+                            </a>
+                        </div>
+                    {% else %}
+                        <a class="navbar-item" href="{{ url_for('auth.login') }}">
+                            <span class="icon"><i class="fas fa-sign-in-alt"></i></span>
+                            <span>Login</span>
+                        </a>
+                        <a class="navbar-item" href="{{ url_for('auth.cadastro') }}">
+                            <span class="icon"><i class="fas fa-user-plus"></i></span>
+                            <span>Cadastro</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </nav>
+
+    <section class="section">
+        <div class="container" style="max-width: 800px;">
+            <div class="content has-text-centered mb-5">
+                <h1 class="title is-2">
+                    ⚖️ Facilitador de Processos
+                </h1>
+                <p class="subtitle">Entenda seu processo judicial sem complicações.</p>
+            </div>
+            
+            <!-- Renderização dinâmica de Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <!-- Traduzindo 'error'/'danger' para o padrão Bulma -->
+                        <div class="notification is-{{ 'danger' if category == 'error' else category }}">
+                            <button class="delete"></button>
+                            <!-- Jinja escape nativo -->
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                    <!-- Lógica simples do Bulma para fechar notificações -->
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
+                                const $notification = $delete.parentNode;
+                                $delete.addEventListener('click', () => {
+                                    $notification.parentNode.removeChild($notification);
+                                });
+                            });
+                        });
+                    </script>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </section>
+
+    <!-- Script para o menu hamburger mobile do Bulma -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const $navbarBurgers = Array.prototype.slice.call(
+                document.querySelectorAll('.navbar-burger'), 0
+            );
+            $navbarBurgers.forEach(el => {
+                el.addEventListener('click', () => {
+                    const target = el.dataset.target;
+                    const $target = document.getElementById(target);
+                    el.classList.toggle('is-active');
+                    $target.classList.toggle('is-active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

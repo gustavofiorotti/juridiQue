@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Facilitador Jurídico{% endblock %}
+
+{% block content %}
+<div class="columns is-centered">
+    <div class="column is-8-tablet is-6-desktop">
+        
+        <!-- Alertas de feedback do backend -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="notification is-{{ 'danger' if category in ['error', 'danger'] else category }}">
+                        <button class="delete"></button>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="box">
+            <h2 class="title is-4 has-text-centered">Entrar na sua Conta</h2>
+            
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                <!-- Campo E-mail -->
+                <div class="field">
+                    {{ form.email.label(class="label") }}
+                    <div class="control has-icons-left">
+                        {% if form.email.errors %}
+                            {{ form.email(class="input is-danger", placeholder="exemplo@email.com") }}
+                        {% else %}
+                            {{ form.email(class="input", placeholder="exemplo@email.com") }}
+                        {% endif %}
+                        <span class="icon is-small is-left">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                    </div>
+                    {% if form.email.errors %}
+                        {% for error in form.email.errors %}
+                            <p class="help is-danger">{{ error }}</p>
+                        <!-- slide -->
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Campo Senha -->
+                <div class="field">
+                    {{ form.senha.label(class="label") }}
+                    <div class="control has-icons-left">
+                        {% if form.senha.errors %}
+                            {{ form.senha(class="input is-danger", placeholder="Sua senha") }}
+                        {% else %}
+                            {{ form.senha(class="input", placeholder="Sua senha") }}
+                        {% endif %}
+                        <span class="icon is-small is-left">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                    </div>
+                    {% if form.senha.errors %}
+                        {% for error in form.senha.errors %}
+                            <p class="help is-danger">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Botão de Submissão -->
+                <div class="field mt-5">
+                    <div class="control">
+                        {{ form.submit(class="button is-primary is-fullwidth") }}
+                    </div>
+                </div>
+            </form>
+            
+            <hr>
+            
+            <p class="has-text-centered is-size-7">
+                Não tem uma conta? <a href="{{ url_for('auth.cadastro') }}">Cadastre-se aqui</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

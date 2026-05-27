@@ -1,0 +1,31 @@
+# Python caching
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment Variables & Secrets
+.env
+.flaskenv
+
+# Local database / Instance folder
+instance/
+*.db
+*.sqlite
+
+# User Uploads
+uploads/
+app/static/uploads/
+
+# Build and Distribution
+build/
+dist/
+*.egg-info/
+facilitador_processos_judiciais.egg-info/

@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Meu Histórico — Facilitador Jurídico{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    {# ═══════════════════════════════════════════════════════════════
+       Título da página
+       ═══════════════════════════════════════════════════════════════ #}
+    <h2 class="title is-3 has-text-centered mb-6">
+        <span class="icon has-text-info"><i class="fas fa-history"></i></span>
+        Meu Histórico de Análises
+    </h2>
+
+    {# ═══════════════════════════════════════════════════════════════
+       Estado vazio — nenhum documento encontrado
+       Exibe uma notificação informativa do Bulma com CTA para nova
+       análise, melhorando a experiência de primeiro acesso.
+       ═══════════════════════════════════════════════════════════════ #}
+    {% if not documentos %}
+
+        <div class="notification is-info is-light has-text-centered">
+            <span class="icon is-medium">
+                <i class="fas fa-info-circle fa-lg"></i>
+            </span>
+            <p class="is-size-5 mt-2">
+                Você ainda não possui documentos analisados.
+            </p>
+            <p class="mt-2 has-text-grey">
+                Envie seu primeiro PDF para que nossa IA traduza o juridiquês para você.
+            </p>
+            <a href="{{ url_for('interpreter.index') }}" class="button is-primary is-medium mt-4">
+                <span class="icon"><i class="fas fa-upload"></i></span>
+                <span>Enviar meu primeiro documento</span>
+            </a>
+        </div>
+
+    {% else %}
+
+        {# ═══════════════════════════════════════════════════════════
+           Contador + botão de nova análise
+           ═══════════════════════════════════════════════════════════ #}
+        <div class="level mb-5">
+            <div class="level-left">
+                <div class="level-item">
+                    <p class="has-text-grey">
+                        <span class="icon is-small"><i class="fas fa-folder-open"></i></span>
+                        {{ documentos|length }}
+                        documento{{ 's' if documentos|length != 1 else '' }}
+                        encontrado{{ 's' if documentos|length != 1 else '' }}
+                    </p>
+                </div>
+            </div>
+            <div class="level-right">
+                <div class="level-item">
+                    <a href="{{ url_for('interpreter.index') }}" class="button is-primary is-outlined is-small">
+                        <span class="icon"><i class="fas fa-plus"></i></span>
+                        <span>Nova Análise</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {# ═══════════════════════════════════════════════════════════
+           Iteração sobre os documentos — um Card Bulma por registro
+
+           Cada card segue a estrutura semântica:
+             • card-header  → nome do arquivo + data de submissão
+             • card-content → preview truncado do resumo LLM
+             • card-footer  → ação futura "Ver análise completa"
+
+           O filtro Jinja2 |truncate(200) garante que o card-content
+           permaneça compacto, exibindo apenas o início do resumo.
+           ═══════════════════════════════════════════════════════════ #}
+        {% for doc in documentos %}
+            <div class="card mb-5" id="documento-{{ doc.id }}">
+
+                {# ── card-header ──────────────────────────────────── #}
+                <header class="card-header">
+                    <p class="card-header-title">
+                        <span class="icon has-text-danger mr-2">
+                            <i class="fas fa-file-pdf"></i>
+                        </span>
+                        {# Jinja2 escape automático protege contra XSS #}
+                        {{ doc.nome_arquivo }}
+                    </p>
+                    <span class="card-header-icon">
+                        <span class="tag is-light is-rounded">
+                            <span class="icon is-small mr-1">
+                                <i class="fas fa-calendar-alt"></i>
+                            </span>
+                            {# .strftime formata a data no padrão brasileiro DD/MM/AAAA #}
+                            {{ doc.data_submissao.strftime('%d/%m/%Y') }}
+                        </span>
+                    </span>
+                </header>
+
+                {# ── card-content ─────────────────────────────────── #}
+                <div class="card-content">
+                    <div class="content">
+                        {% if doc.resumo_gerado_llm %}
+                            {#
+                               |truncate(200) do Jinja2 corta o texto em 200
+                               caracteres e adiciona "..." automaticamente,
+                               mantendo o card compacto e legível.
+                            #}
+                            <p class="has-text-justified has-text-grey-dark">
+                                {{ doc.resumo_gerado_llm|truncate(200) }}
+                            </p>
+                        {% else %}
+                            <p class="has-text-grey is-italic">
+                                <span class="icon is-small"><i class="fas fa-exclamation-circle"></i></span>
+                                Resumo não disponível para este documento.
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# ── card-footer ──────────────────────────────────── #}
+                <footer class="card-footer">
+                    {#
+                       Botão preparado para futura rota de detalhes.
+                       Atualmente aponta para '#' como placeholder
+                       até a implementação da view de análise completa.
+                    #}
+                    <a href="#" class="card-footer-item has-text-info"
+                       title="Funcionalidade em desenvolvimento">
+                        <span class="icon is-small mr-1"><i class="fas fa-search-plus"></i></span>
+                        Ver análise completa
+                    </a>
+                    <a href="{{ url_for('interpreter.index') }}" class="card-footer-item has-text-primary">
+                        <span class="icon is-small mr-1"><i class="fas fa-redo-alt"></i></span>
+                        Reanalisar
+                    </a>
+                </footer>
+
+            </div>
+        {% endfor %}
+
+    {% endif %}
+
+    {# ═══════════════════════════════════════════════════════════════
+       Navegação inferior — retorno à página principal
+       ═══════════════════════════════════════════════════════════════ #}
+    <div class="has-text-centered mt-6">
+        <a href="{{ url_for('interpreter.index') }}" class="button is-light">
+            <span class="icon"><i class="fas fa-arrow-left"></i></span>
+            <span>Voltar ao início</span>
+        </a>
+    </div>
+
+</div>
+{% endblock %}
