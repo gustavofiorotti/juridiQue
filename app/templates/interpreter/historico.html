@@ -1,156 +1,87 @@
 {% extends "base.html" %}
-
 {% block title %}Meu Histórico | Juridiquê{% endblock %}
-
 {% block content %}
 {% block page_header %}{% endblock %}
 <div class="container">
-
-    {# ═══════════════════════════════════════════════════════════════
-       Título da página
-       ═══════════════════════════════════════════════════════════════ #}
-    <h2 class="title is-3 has-text-centered mb-6">
-        <span class="icon has-text-info"><i class="fas fa-history"></i></span>
+    <div class="jq-section-title jq-animate-in" style="font-size:1.3rem;justify-content:center;margin-bottom:2rem;">
+        <span class="icon"><i class="fas fa-history"></i></span>
         Meu Histórico de Análises
-    </h2>
-
-    {# ═══════════════════════════════════════════════════════════════
-       Estado vazio — nenhum documento encontrado
-       Exibe uma notificação informativa do Bulma com CTA para nova
-       análise, melhorando a experiência de primeiro acesso.
-       ═══════════════════════════════════════════════════════════════ #}
+    </div>
     {% if not documentos %}
-
-        <div class="notification is-info is-light has-text-centered">
-            <span class="icon is-medium">
-                <i class="fas fa-info-circle fa-lg"></i>
-            </span>
-            <p class="is-size-5 mt-2">
-                Você ainda não possui documentos analisados.
-            </p>
-            <p class="mt-2 has-text-grey">
-                Envie seu primeiro PDF para que nossa IA traduza o juridiquês para você.
-            </p>
-            <a href="{{ url_for('interpreter.index') }}" class="button is-primary is-medium mt-4">
-                <span class="icon"><i class="fas fa-upload"></i></span>
-                <span>Enviar meu primeiro documento</span>
-            </a>
-        </div>
-
+    <div class="jq-empty-state jq-animate-in">
+        <span class="icon is-large"><i class="fas fa-folder-open fa-2x"></i></span>
+        <p class="is-size-5 mt-3" style="color:var(--text-primary);">Você ainda não possui documentos analisados.</p>
+        <p class="mt-2">Envie seu primeiro PDF para que nossa IA traduza o juridiquês para você.</p>
+        <a href="{{ url_for('interpreter.index') }}" class="button is-primary is-medium mt-5">
+            <span class="icon"><i class="fas fa-upload"></i></span>
+            <span>Enviar meu primeiro documento</span>
+        </a>
+    </div>
     {% else %}
-
-        {# ═══════════════════════════════════════════════════════════
-           Contador + botão de nova análise
-           ═══════════════════════════════════════════════════════════ #}
-        <div class="level mb-5">
-            <div class="level-left">
-                <div class="level-item">
-                    <p class="has-text-grey">
-                        <span class="icon is-small"><i class="fas fa-folder-open"></i></span>
-                        {{ documentos|length }}
-                        documento{{ 's' if documentos|length != 1 else '' }}
-                        encontrado{{ 's' if documentos|length != 1 else '' }}
-                    </p>
-                </div>
-            </div>
-            <div class="level-right">
-                <div class="level-item">
-                    <a href="{{ url_for('interpreter.index') }}" class="button is-primary is-outlined is-small">
-                        <span class="icon"><i class="fas fa-plus"></i></span>
-                        <span>Nova Análise</span>
-                    </a>
-                </div>
+    <div class="level mb-5 jq-animate-in">
+        <div class="level-left">
+            <div class="level-item">
+                <p style="color:var(--text-muted);">
+                    <span class="icon is-small"><i class="fas fa-folder-open"></i></span>
+                    {{ documentos|length }} documento{{ 's' if documentos|length != 1 else '' }} encontrado{{ 's' if documentos|length != 1 else '' }}
+                </p>
             </div>
         </div>
-
-        {# ═══════════════════════════════════════════════════════════
-           Iteração sobre os documentos — um Card Bulma por registro
-
-           Cada card segue a estrutura semântica:
-             • card-header  → nome do arquivo + data de submissão
-             • card-content → preview truncado do resumo LLM
-             • card-footer  → ação futura "Ver análise completa"
-
-           O filtro Jinja2 |truncate(200) garante que o card-content
-           permaneça compacto, exibindo apenas o início do resumo.
-           ═══════════════════════════════════════════════════════════ #}
-        {% for doc in documentos %}
-            <div class="card mb-5" id="documento-{{ doc.id }}">
-
-                {# ── card-header ──────────────────────────────────── #}
-                <header class="card-header">
-                    <p class="card-header-title">
-                        <span class="icon has-text-danger mr-2">
-                            <i class="fas fa-file-pdf"></i>
-                        </span>
-                        {# Jinja2 escape automático protege contra XSS #}
-                        {{ doc.nome_arquivo }}
-                    </p>
-                    <span class="card-header-icon">
-                        <span class="tag is-light is-rounded">
-                            <span class="icon is-small mr-1">
-                                <i class="fas fa-calendar-alt"></i>
-                            </span>
-                            {{ doc.data_submissao | format_datetime_local }}
-                        </span>
-                    </span>
-                </header>
-
-                {# ── card-content ─────────────────────────────────── #}
-                <div class="card-content">
-                    <div class="content">
-                        {% if doc.resumo_gerado_llm %}
-                            {#
-                               |truncate(200) do Jinja2 corta o texto em 200
-                               caracteres e adiciona "..." automaticamente,
-                               mantendo o card compacto e legível.
-                            #}
-                            <p class="has-text-justified has-text-grey-dark">
-                                {% set dados = doc.resumo_gerado_llm | from_json %}
-                                {{ dados.resumo | truncate(200) }}
-                            </p>
-                        {% else %}
-                            <p class="has-text-grey is-italic">
-                                <span class="icon is-small"><i class="fas fa-exclamation-circle"></i></span>
-                                Resumo não disponível para este documento.
-                            </p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <footer class="card-footer">
-                    <a href="{{ url_for('interpreter.ver_analise', id=doc.id) }}" class="card-footer-item has-text-info">
-                        <span class="icon is-small mr-1"><i class="fas fa-search-plus"></i></span>
-                        Ver análise completa
-                    </a>
-                    <form action="{{ url_for('interpreter.reanalisar', id=doc.id) }}" method="POST" class="card-footer-item" style="padding: 0;" onsubmit="document.getElementById('ai-loading-overlay').classList.add('is-active');">
-                        <button type="submit" class="button is-white is-fullwidth has-text-primary" style="height: 100%; border-radius: 0; justify-content: center; width: 100%;">
-                            <span class="icon is-small mr-1"><i class="fas fa-redo-alt"></i></span>
-                            Reanalisar
-                        </button>
-                    </form>
-                    <form action="{{ url_for('interpreter.apagar_historico', id=doc.id) }}" method="POST" class="card-footer-item" style="padding: 0;">
-                        <button type="submit" class="button is-white is-fullwidth has-text-danger" style="height: 100%; border-radius: 0; justify-content: center; width: 100%;" onclick="return confirm('Tem certeza que deseja apagar este documento do histórico?');">
-                            <span class="icon is-small mr-1"><i class="fas fa-trash-alt"></i></span>
-                            Apagar
-                        </button>
-                    </form>
-                </footer>
-
+        <div class="level-right">
+            <div class="level-item">
+                <a href="{{ url_for('interpreter.index') }}" class="button is-primary is-outlined is-small">
+                    <span class="icon"><i class="fas fa-plus"></i></span>
+                    <span>Nova Análise</span>
+                </a>
             </div>
-        {% endfor %}
-
+        </div>
+    </div>
+    {% for doc in documentos %}
+    <div class="card mb-4" id="documento-{{ doc.id }}">
+        <header class="card-header">
+            <p class="card-header-title">
+                <span class="icon has-text-danger mr-2"><i class="fas fa-file-pdf"></i></span>
+                {{ doc.nome_arquivo }}
+            </p>
+            <span class="card-header-icon">
+                <span class="tag is-light is-rounded">
+                    <span class="icon is-small mr-1"><i class="fas fa-clock"></i></span>
+                    {{ doc.data_submissao | format_datetime_local }}
+                </span>
+            </span>
+        </header>
+        <div class="card-content">
+            <div class="content">
+                {% if doc.resumo_gerado_llm %}
+                <p class="has-text-justified">{% set dados = doc.resumo_gerado_llm | from_json %}{{ dados.resumo | truncate(200) }}</p>
+                {% else %}
+                <p style="color:var(--text-muted);font-style:italic;">Resumo não disponível.</p>
+                {% endif %}
+            </div>
+        </div>
+        <footer class="card-footer">
+            <a href="{{ url_for('interpreter.ver_analise', id=doc.id) }}" class="card-footer-item">
+                <span class="icon is-small mr-1"><i class="fas fa-search-plus"></i></span> Ver análise completa
+            </a>
+            <form action="{{ url_for('interpreter.reanalisar', id=doc.id) }}" method="POST" class="card-footer-item" style="padding:0;" onsubmit="document.getElementById('ai-loading-overlay').classList.add('is-active');">
+                <button type="submit" class="button is-white is-fullwidth" style="height:100%;border-radius:0;justify-content:center;width:100%;font-weight:500;font-size:0.875rem;">
+                    <span class="icon is-small mr-1"><i class="fas fa-redo-alt"></i></span> Reanalisar
+                </button>
+            </form>
+            <form action="{{ url_for('interpreter.apagar_historico', id=doc.id) }}" method="POST" class="card-footer-item" style="padding:0;">
+                <button type="submit" class="button is-white is-fullwidth has-text-danger" style="height:100%;border-radius:0;justify-content:center;width:100%;font-weight:500;font-size:0.875rem;" onclick="return confirm('Tem certeza que deseja apagar este documento do histórico?');">
+                    <span class="icon is-small mr-1"><i class="fas fa-trash-alt"></i></span> Apagar
+                </button>
+            </form>
+        </footer>
+    </div>
+    {% endfor %}
     {% endif %}
-
-    {# ═══════════════════════════════════════════════════════════════
-       Navegação inferior — retorno à página principal
-       ═══════════════════════════════════════════════════════════════ #}
-    <div class="has-text-centered mt-6">
+    <div class="has-text-centered mt-6 mb-4 jq-animate-in">
         <a href="{{ url_for('interpreter.index') }}" class="button is-light">
             <span class="icon"><i class="fas fa-arrow-left"></i></span>
             <span>Voltar ao início</span>
         </a>
     </div>
-
 </div>
 {% endblock %}

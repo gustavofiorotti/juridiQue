@@ -4,15 +4,14 @@
 
 {% block content %}
 <div class="columns is-centered">
-    <div class="column is-8-tablet is-6-desktop">
-        
+    <div class="column is-8-tablet is-5-desktop">
 
-        <div class="box">
-            <h2 class="title is-4 has-text-centered">Entrar na sua Conta</h2>
-            
+        <div class="box jq-animate-in">
+            <h2 class="title is-4 has-text-centered" style="margin-bottom: 1.5rem;">Entrar na sua Conta</h2>
+
             <form method="POST">
                 {{ form.hidden_tag() }}
-                
+
                 <!-- Campo E-mail -->
                 <div class="field">
                     {{ form.email.label(class="label") }}
@@ -29,7 +28,6 @@
                     {% if form.email.errors %}
                         {% for error in form.email.errors %}
                             <p class="help is-danger">{{ error }}</p>
-                        <!-- slide -->
                         {% endfor %}
                     {% endif %}
                 </div>
@@ -57,14 +55,14 @@
                 <!-- Botão de Submissão -->
                 <div class="field mt-5">
                     <div class="control">
-                        {{ form.submit(class="button is-primary is-fullwidth") }}
+                        {{ form.submit(class="button is-primary is-fullwidth is-medium") }}
                     </div>
                 </div>
             </form>
-            
+
             <hr>
-            
-            <p class="has-text-centered is-size-7">
+
+            <p class="jq-auth-link has-text-centered">
                 Não tem uma conta? <a href="{{ url_for('auth.cadastro') }}">Cadastre-se aqui</a>
             </p>
         </div>

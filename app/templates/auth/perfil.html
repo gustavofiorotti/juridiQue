@@ -4,14 +4,17 @@
 
 {% block content %}
 <div class="columns is-centered">
-    <div class="column is-8-tablet is-6-desktop">
-        
-        <div class="box">
-            <h2 class="title is-4 has-text-centered">Meu Perfil</h2>
-            
+    <div class="column is-8-tablet is-5-desktop">
+
+        <div class="box jq-animate-in">
+            <h2 class="title is-4 has-text-centered" style="margin-bottom: 1.5rem;">
+                <span class="icon"><i class="fas fa-user-cog"></i></span>
+                Meu Perfil
+            </h2>
+
             <form method="POST">
                 {{ form.hidden_tag() }}
-                
+
                 <!-- Campo Nome -->
                 <div class="field">
                     {{ form.nome.label(class="label") }}
@@ -33,8 +36,11 @@
                 </div>
 
                 <hr>
-                <h3 class="title is-5">Alterar Senha</h3>
-                <p class="is-size-7 has-text-grey mb-4">Deixe os campos abaixo em branco se não desejar alterar sua senha.</p>
+                <h3 class="title is-5" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="icon"><i class="fas fa-shield-alt"></i></span>
+                    Alterar Senha
+                </h3>
+                <p class="jq-section-desc">Deixe os campos abaixo em branco se não desejar alterar sua senha.</p>
 
                 <!-- Campo Senha Atual -->
                 <div class="field">
@@ -81,7 +87,7 @@
                             {{ form.confirmar_nova_senha(class="input", placeholder="Confirme sua nova senha") }}
                         {% endif %}
                         <span class="icon is-small is-left">
-                            <i class="fas fa-check"></i>
+                            <i class="fas fa-check-double"></i>
                         </span>
                     </div>
                     {% if form.confirmar_nova_senha.errors %}
@@ -91,15 +97,33 @@
                     {% endif %}
                 </div>
 
-                <!-- Botões -->
+                <!-- Botão Salvar -->
                 <div class="field mt-5">
                     <div class="control">
-                        {{ form.submit(class="button is-primary is-fullwidth") }}
+                        {{ form.submit(class="button is-primary is-fullwidth is-medium") }}
                     </div>
                 </div>
             </form>
         </div>
-        
+
+        <!-- Zona de Perigo -->
+        <div class="box mt-5" style="border-color: var(--danger-border) !important; border-left: 3px solid var(--danger) !important;">
+            <h3 class="title is-5" style="color: var(--danger);">
+                <span class="icon is-small"><i class="fas fa-exclamation-triangle"></i></span>
+                Zona de Perigo
+            </h3>
+            <p class="jq-section-desc">
+                Excluir sua conta é permanente e irreversível. Todos os seus documentos e histórico serão apagados.
+            </p>
+            <form action="{{ url_for('auth.excluir_conta') }}" method="POST" onsubmit="return confirm('Tem certeza? Esta ação é irreversível e todos os seus dados serão apagados permanentemente.');">
+                {{ form.hidden_tag() }}
+                <button type="submit" class="button is-danger is-outlined">
+                    <span class="icon is-small"><i class="fas fa-trash-alt"></i></span>
+                    <span>Excluir minha conta</span>
+                </button>
+            </form>
+        </div>
+
     </div>
 </div>
 {% endblock %}

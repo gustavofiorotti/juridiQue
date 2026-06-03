@@ -3,36 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Juridiquê — Inteligência artificial que traduz documentos jurídicos para linguagem simples e acessível.">
     <title>{% block title %}Juridiquê{% endblock %}</title>
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
-    <!-- Bulma CSS CDN -->
+
+    <!-- Bulma CSS (layout utilities) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <!-- FontAwesome para ícones -->
+
+    <!-- FontAwesome Icons -->
     <script defer src="https://use.fontawesome.com/releases/v5.15.4/js/all.js"></script>
-    <style>
-        /* Estilo simples para tooltip nativo nos termos jurídicos */
-        .juridiquess-tooltip {
-            border-bottom: 1px dashed currentColor;
-            cursor: help;
-        }
-    </style>
+
+    <!-- Juridiquê Design System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="is-flex is-flex-direction-column" style="min-height: 100vh;">
+<body>
 
     {# ═══════════════════════════════════════════════════════════════
-       Barra de navegação — visível em todas as páginas
-       Exibe links contextuais de acordo com o estado de autenticação.
+       Navbar
        ═══════════════════════════════════════════════════════════════ #}
-    <nav class="navbar is-light" role="navigation" aria-label="navegação principal">
-        <div class="container" style="max-width: 800px;">
+    <nav class="navbar" role="navigation" aria-label="navegação principal">
+        <div class="container" style="max-width: 860px;">
 
             <div class="navbar-brand">
-                <a class="navbar-item has-text-weight-bold is-size-5" href="{{ url_for('auth.login') }}">
-                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo Juridiquê" style="max-height: 2rem; margin-right: 10px;">
+                <a class="navbar-item" href="{% if current_user.is_authenticated %}{{ url_for('interpreter.index') }}{% else %}{{ url_for('auth.login') }}{% endif %}">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo Juridiquê" style="max-height: 1.8rem; margin-right: 10px;">
                     Juridiquê
                 </a>
-                <!-- Hamburger para mobile -->
                 <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
                     <span aria-hidden="true"></span>
                     <span aria-hidden="true"></span>
@@ -49,16 +47,18 @@
                         </a>
                         <div class="navbar-item has-dropdown is-hoverable">
                             <a class="navbar-link" href="{{ url_for('auth.perfil') }}">
-                                <span class="icon"><i class="fas fa-user"></i></span>
+                                <span class="icon"><i class="fas fa-user-circle"></i></span>
                                 <span>{{ current_user.nome.split()[0] if current_user.nome else 'Usuário' }}</span>
                             </a>
                             <div class="navbar-dropdown is-right">
                                 <a class="navbar-item" href="{{ url_for('auth.perfil') }}">
-                                    Meu Perfil
+                                    <span class="icon is-small"><i class="fas fa-cog"></i></span>
+                                    <span>Meu Perfil</span>
                                 </a>
                                 <hr class="navbar-divider">
                                 <a class="navbar-item has-text-danger" href="{{ url_for('auth.logout') }}">
-                                    Sair
+                                    <span class="icon is-small"><i class="fas fa-sign-out-alt"></i></span>
+                                    <span>Sair</span>
                                 </a>
                             </div>
                         </div>
@@ -78,30 +78,31 @@
         </div>
     </nav>
 
-    <section class="section is-flex-grow-1">
-        <div class="container" style="max-width: 800px;">
+    {# ═══════════════════════════════════════════════════════════════
+       Main Content
+       ═══════════════════════════════════════════════════════════════ #}
+    <section class="section">
+        <div class="container" style="max-width: 860px;">
+
             {% block page_header %}
-            <div class="content has-text-centered mb-5">
-                <h1 class="title is-2 is-flex is-align-items-center is-justify-content-center">
-                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo Juridiquê" style="max-height: 4rem; margin-right: 15px;">
+            <div class="jq-page-header">
+                <h1 class="title is-2" style="display: inline-flex; align-items: center; gap: 0.75rem;">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo Juridiquê" style="max-height: 3.5rem;">
                     Juridiquê
                 </h1>
-                <p class="subtitle">Entenda seus documentos jurídicos sem complicações.</p>
+                <p class="subtitle is-6 mt-2">Entenda seus documentos jurídicos sem complicações.</p>
             </div>
             {% endblock %}
-            
-            <!-- Renderização dinâmica de Flash Messages -->
+
+            {# Flash Messages #}
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
-                        <!-- Traduzindo 'error'/'danger' para o padrão Bulma -->
-                        <div class="notification is-{{ 'danger' if category == 'error' else category }}">
+                        <div class="notification is-{{ 'danger' if category == 'error' else category }} jq-animate-in mb-4">
                             <button class="delete"></button>
-                            <!-- Jinja escape nativo -->
                             {{ message }}
                         </div>
                     {% endfor %}
-                    <!-- Lógica simples do Bulma para fechar notificações -->
                     <script>
                         document.addEventListener('DOMContentLoaded', () => {
                             (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
@@ -119,35 +120,37 @@
         </div>
     </section>
 
-    <footer class="footer" style="padding: 1.5rem 1.5rem; background-color: #f5f5f5; margin-top: auto;">
+    {# ═══════════════════════════════════════════════════════════════
+       Footer
+       ═══════════════════════════════════════════════════════════════ #}
+    <footer class="footer">
         <div class="content has-text-centered">
             <p>
-                <strong>Juridiquê</strong> &copy; 2026. Facilitando o acesso à informação jurídica.
+                <strong>Juridiquê</strong> &copy; 2026 &middot; Simplificando o acesso à informação jurídica.
             </p>
         </div>
     </footer>
-    <!-- Modal de Loading da IA -->
+
+    {# ═══════════════════════════════════════════════════════════════
+       AI Loading Modal
+       ═══════════════════════════════════════════════════════════════ #}
     <div id="ai-loading-overlay" class="modal">
-        <div class="modal-background" style="background-color: rgba(10, 10, 10, 0.86);"></div>
-        <div class="modal-content has-text-centered">
-            <span class="icon is-large has-text-primary mb-4" style="animation: spin 1s linear infinite;">
-                <i class="fas fa-circle-notch fa-3x"></i>
-            </span>
-            <h2 class="title is-4 has-text-white mt-4">A Inteligência Artificial está analisando seu documento...</h2>
-            <p class="subtitle is-6 has-text-light">Isso pode levar alguns segundos. Por favor, não feche a página.</p>
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <div style="background: #fff; border-radius: 14px; padding: 2.25rem 2rem; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.15);">
+                <div class="jq-spinner"></div>
+                <h2 class="title is-5" style="margin-top: 1.25rem; margin-bottom: 0.5rem; color: #101828;">Analisando seu documento...</h2>
+                <p class="subtitle is-6" style="color: #667085; margin: 0;">Nossa IA está lendo e traduzindo. Aguarde.</p>
+            </div>
         </div>
     </div>
 
-    <style>
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-
-    <!-- Script para o menu hamburger mobile do Bulma -->
+    {# ═══════════════════════════════════════════════════════════════
+       Scripts
+       ═══════════════════════════════════════════════════════════════ #}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Navbar burger toggle
             const $navbarBurgers = Array.prototype.slice.call(
                 document.querySelectorAll('.navbar-burger'), 0
             );

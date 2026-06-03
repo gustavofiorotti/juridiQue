@@ -87,6 +87,21 @@ def index() -> str | WerkzeugResponse:
         dados_llm: dict[str, Any] = llm.traduzir_processo(texto_extraido)
 
         # ------------------------------------------------------------------
+        # 3b. Verificação de contexto jurídico
+        # ------------------------------------------------------------------
+        # O LLM avalia se o documento é de natureza jurídica.
+        # Se não for, informamos o usuário sem salvar no banco.
+        if not dados_llm.get("juridico", True):
+            flash(
+                "O documento enviado não parece ser de natureza jurídica "
+                "(processo, lei, contrato, PEC, portaria, etc.). "
+                "O Juridiquê foi desenvolvido para traduzir documentos do ambiente "
+                "do Direito. Por favor, envie um documento jurídico.",
+                "warning",
+            )
+            return redirect(url_for("interpreter.index"))
+
+        # ------------------------------------------------------------------
         # 4. Persistência no banco de dados
         # ------------------------------------------------------------------
         processo_bd: ProcessoJudicial = ProcessoJudicial(

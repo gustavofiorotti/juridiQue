@@ -5,21 +5,23 @@
 {% block content %}
 
 {# ═══════════════════════════════════════════════════════════════════
-   SEÇÃO 1 — Formulário de Upload do PDF
+   SEÇÃO 1 — Upload do PDF
    ═══════════════════════════════════════════════════════════════════ #}
-<div class="box">
-    <h1 class="title is-4 mb-5">Bem-vindo(a), {{ current_user.nome.split()[0] if current_user.nome else 'Usuário' }}!</h1>
-    <h2 class="title is-4">
-        <span class="icon has-text-primary"><i class="fas fa-cloud-upload-alt"></i></span>
+<div class="box jq-animate-in">
+    <div class="jq-welcome">
+        👋 Olá, <strong>{{ current_user.nome.split()[0] if current_user.nome else 'Usuário' }}</strong>! O que vamos analisar hoje?
+    </div>
+
+    <div class="jq-section-title">
+        <span class="icon"><i class="fas fa-cloud-upload-alt"></i></span>
         Envie seu documento
-    </h2>
-    <p class="mb-4">
+    </div>
+    <p class="jq-section-desc">
         Faça o upload do seu PDF jurídico. Nossa inteligência artificial
         fará a leitura e entregará um resumo claro.
     </p>
 
     <form method="POST" enctype="multipart/form-data" action="{{ url_for('interpreter.index') }}" onsubmit="if(document.getElementById('arquivo_pdf').files.length > 0) document.getElementById('ai-loading-overlay').classList.add('is-active');">
-        <!-- Injeção segura do Token CSRF habilitado no Flask-WTF -->
         {{ form.hidden_tag() }}
 
         <div class="field">
@@ -27,7 +29,6 @@
             <div class="control">
                 <div class="file has-name is-fullwidth is-info">
                     <label class="file-label">
-                        <!-- Input do WTForm -->
                         {{ form.arquivo_pdf(class_="file-input", id="arquivo_pdf", accept=".pdf") }}
                         <span class="file-cta">
                             <span class="file-icon">
@@ -43,7 +44,6 @@
                     </label>
                 </div>
             </div>
-            <!-- Exibindo erros de validação (ex: arquivo muito grande, sem pdf, etc) -->
             {% if form.arquivo_pdf.errors %}
                 <p class="help is-danger">
                     {% for error in form.arquivo_pdf.errors %}
@@ -65,93 +65,62 @@
 </div>
 
 {# ═══════════════════════════════════════════════════════════════════
-   SEÇÃO 2 — Meu Histórico de Análises
-   A variável 'documentos' é uma lista de objetos ProcessoJudicial,
-   já filtrada pelo id_usuario do usuário autenticado na rota.
+   SEÇÃO 2 — Histórico recente
    ═══════════════════════════════════════════════════════════════════ #}
-<div class="container mt-6">
+<div class="mt-6">
 
-    <h2 class="title is-4 has-text-centered mb-5">
-        <span class="icon has-text-info"><i class="fas fa-history"></i></span>
-        Meu Histórico de Análises
-    </h2>
+    <div class="jq-section-title" style="font-size: 1.2rem; margin-bottom: 1.5rem;">
+        <span class="icon"><i class="fas fa-history"></i></span>
+        Análises recentes
+    </div>
 
     {% if documentos %}
 
-        {# ── Contador de documentos ────────────────────────────────── #}
-        <p class="has-text-grey mb-4">
-            <span class="icon is-small"><i class="fas fa-folder-open"></i></span>
-            {{ documentos|length }}
-            documento{{ 's' if documentos|length != 1 else '' }}
-            analisado{{ 's' if documentos|length != 1 else '' }}
-        </p>
-
-        {# ── Iteração: um Card Bulma por documento ─────────────────
-           Estrutura semântica do Card:
-             • card-header  → nome do arquivo + data (DD/MM/AAAA)
-             • card-content → resumo truncado em 200 caracteres
-             • card-footer  → ação futura "Ver análise completa"
-        ──────────────────────────────────────────────────────────── #}
         {% for doc in documentos %}
-            <div class="card mb-5" id="documento-{{ doc.id }}">
-
-                {# ── card-header ──────────────────────────────── #}
+            <div class="card mb-4" id="documento-{{ doc.id }}">
                 <header class="card-header">
                     <p class="card-header-title">
                         <span class="icon has-text-danger mr-2">
                             <i class="fas fa-file-pdf"></i>
                         </span>
-                        {# Jinja2 escape automático protege contra XSS #}
                         {{ doc.nome_arquivo }}
                     </p>
                     <span class="card-header-icon">
                         <span class="tag is-light is-rounded">
                             <span class="icon is-small mr-1">
-                                <i class="fas fa-calendar-alt"></i>
+                                <i class="fas fa-clock"></i>
                             </span>
                             {{ doc.data_submissao | format_datetime_local }}
                         </span>
                     </span>
                 </header>
 
-                {# ── card-content ─────────────────────────────── #}
                 <div class="card-content">
                     <div class="content">
                         {% if doc.resumo_gerado_llm %}
-                            {#
-                               |truncate(200) do Jinja2 corta o texto em 200
-                               caracteres e adiciona "..." automaticamente,
-                               mantendo o card compacto e legível.
-                            #}
-                            <p class="has-text-justified has-text-grey-dark">
+                            <p class="has-text-justified">
                                 {% set dados = doc.resumo_gerado_llm | from_json %}
                                 {{ dados.resumo | truncate(200) }}
                             </p>
                         {% else %}
-                            <p class="has-text-grey is-italic">
-                                <span class="icon is-small">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                </span>
+                            <p style="color: var(--text-muted); font-style: italic;">
+                                <span class="icon is-small"><i class="fas fa-exclamation-circle"></i></span>
                                 Resumo não disponível para este documento.
                             </p>
                         {% endif %}
                     </div>
                 </div>
 
-                {# ── card-footer ──────────────────────────────── #}
                 <footer class="card-footer">
-                    <a href="{{ url_for('interpreter.ver_analise', id=doc.id) }}" class="card-footer-item has-text-info">
-                        <span class="icon is-small mr-1">
-                            <i class="fas fa-search-plus"></i>
-                        </span>
+                    <a href="{{ url_for('interpreter.ver_analise', id=doc.id) }}" class="card-footer-item">
+                        <span class="icon is-small mr-1"><i class="fas fa-search-plus"></i></span>
                         Ver análise completa
                     </a>
                 </footer>
-
             </div>
         {% endfor %}
-        
-        <div class="has-text-centered mt-4 mb-6">
+
+        <div class="has-text-centered mt-5 mb-4">
             <a href="{{ url_for('interpreter.historico') }}" class="button is-link is-outlined">
                 <span class="icon"><i class="fas fa-list"></i></span>
                 <span>Ver todo o histórico</span>
@@ -160,15 +129,14 @@
 
     {% else %}
 
-        {# ── Estado vazio — nenhum documento analisado ─────────── #}
-        <div class="notification is-info is-light has-text-centered">
-            <span class="icon is-medium">
-                <i class="fas fa-info-circle fa-lg"></i>
+        <div class="jq-empty-state">
+            <span class="icon is-large">
+                <i class="fas fa-folder-open fa-2x"></i>
             </span>
-            <p class="is-size-5 mt-2">
-                Você ainda não possui documentos analisados.
+            <p class="is-size-5 mt-3" style="color: var(--text-primary);">
+                Nenhuma análise encontrada.
             </p>
-            <p class="mt-2 has-text-grey">
+            <p class="mt-2">
                 Utilize o formulário acima para enviar seu primeiro PDF
                 e receba uma tradução em linguagem simples.
             </p>
@@ -178,7 +146,7 @@
 
 </div>
 
-{# ── Script para atualizar o nome do arquivo no layout Bulma ────── #}
+{# ── Script para atualizar o nome do arquivo ────── #}
 <script>
     const fileInput = document.querySelector('#arquivo_pdf');
     fileInput.onchange = () => {

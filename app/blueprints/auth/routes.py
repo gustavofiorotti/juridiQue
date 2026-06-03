@@ -103,3 +103,15 @@ def perfil():
         return redirect(url_for("auth.perfil"))
         
     return render_template("auth/perfil.html", form=form)
+
+
+@auth_bp.route("/excluir-conta", methods=["POST"])
+@login_required
+def excluir_conta():
+    """Exclui permanentemente a conta do usuário autenticado."""
+    usuario = current_user._get_current_object()
+    logout_user()
+    db.session.delete(usuario)
+    db.session.commit()
+    flash("Sua conta foi excluída permanentemente.", "info")
+    return redirect(url_for("auth.cadastro"))
