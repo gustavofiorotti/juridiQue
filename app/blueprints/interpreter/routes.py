@@ -134,6 +134,7 @@ def index() -> str | WerkzeugResponse:
         ProcessoJudicial.query
         .filter_by(id_usuario=user_id)
         .order_by(ProcessoJudicial.data_submissao.desc())
+        .limit(5)
         .all()
     )
 
@@ -181,3 +182,86 @@ def historico() -> str | WerkzeugResponse:
         'interpreter/historico.html',
         documentos=documentos,
     )
+
+
+@interpreter_bp.route('/historico/<int:id>/apagar', methods=['POST'])
+@login_required
+def apagar_historico(id: int) -> WerkzeugResponse:
+    """
+    Apaga um documento do histórico do usuário.
+    """
+    user_id: str = current_user.id
+    documento = ProcessoJudicial.query.filter_by(id=id, id_usuario=user_id).first()
+    
+    if documento:
+        db.session.delete(documento)
+        db.session.commit()
+        flash('Documento apagado com sucesso.', 'success')
+    else:
+        flash('Documento não encontrado ou sem permissão para apagar.', 'danger')
+        
+    return redirect(url_for('interpreter.historico'))
+
+
+@interpreter_bp.route('/historico/<int:id>', methods=['GET'])
+@login_required
+def ver_analise(id: int) -> str | WerkzeugResponse:
+    """
+    Exibe a análise completa de um documento previamente salvo no histórico.
+    """
+    user_id: str = current_user.id
+    processo = ProcessoJudicial.query.filter_by(id=id, id_usuario=user_id).first()
+    
+    if not processo:
+        flash('Documento não encontrado.', 'danger')
+        return redirect(url_for('interpreter.historico'))
+        
+    try:
+        dados_llm = json.loads(processo.resumo_gerado_llm) if processo.resumo_gerado_llm else {}
+    except json.JSONDecodeError:
+        dados_llm = {"resumo": "Erro ao ler o resumo do banco de dados.", "termos": []}
+        
+    return render_template(
+        'interpreter/resultado.html',
+        processo=processo,
+        dados_llm=dados_llm,
+    )
+
+
+@interpreter_bp.route('/historico/<int:id>/reanalisar', methods=['POST'])
+@login_required
+def reanalisar(id: int) -> WerkzeugResponse:
+    """
+    Refaz a análise de um documento usando o texto original já extraído.
+    """
+    user_id: str = current_user.id
+    processo = ProcessoJudicial.query.filter_by(id=id, id_usuario=user_id).first()
+    
+    if not processo:
+        flash('Documento não encontrado.', 'danger')
+        return redirect(url_for('interpreter.historico'))
+        
+    llm: JuridicoLLMService | None = current_app.extensions.get('juridico_llm')
+    if not llm:
+        flash('Serviço de tradução (LLM) está indisponível no momento.', 'danger')
+        return redirect(url_for('interpreter.historico'))
+        
+    dados_llm = llm.traduzir_processo(processo.texto_original_extraido)
+    
+    novo_processo = ProcessoJudicial(
+        id_usuario=user_id,
+        nome_arquivo=processo.nome_arquivo,
+        texto_original_extraido=processo.texto_original_extraido,
+        resumo_gerado_llm=json.dumps(dados_llm, ensure_ascii=False)
+    )
+    
+    try:
+        db.session.add(novo_processo)
+        db.session.commit()
+        flash('Documento reanalisado com sucesso! Um novo registro foi criado.', 'success')
+    except SQLAlchemyError as exc:
+        db.session.rollback()
+        current_app.logger.error('[DB] Falha ao reanalisar ProcessoJudicial: %s', exc)
+        flash('Ocorreu um erro ao salvar a reanálise.', 'danger')
+        
+    return redirect(url_for('interpreter.ver_analise', id=novo_processo.id if novo_processo.id else processo.id))

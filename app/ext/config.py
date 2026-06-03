@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 def init_app(app: Flask) -> None:
     """Inicializa e carrega as configurações da aplicação a partir do .env."""
-    load_dotenv()
+    load_dotenv(override=True)
 
     # Para garantir que todas as sessões anteriores no navegador sejam invalidadas
     # a cada reinício do servidor (conforme solicitado pelo usuário), adicionamos

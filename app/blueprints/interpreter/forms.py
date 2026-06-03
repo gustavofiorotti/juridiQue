@@ -9,7 +9,7 @@ class UploadProcessoForm(FlaskForm):
     A proteção CSRF está habilitada implicitamente (padrão do FlaskForm).
     """
     arquivo_pdf = FileField(
-        'Arquivo do Processo (PDF)',
+        'Arquivo do documento (PDF)',
         validators=[
             FileRequired(message='O envio de um arquivo é obrigatório.'),
             FileAllowed(['pdf'], message='Apenas arquivos com extensão .pdf são permitidos.'),

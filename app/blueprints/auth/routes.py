@@ -24,15 +24,16 @@ def cadastro():
         novo_id = str(uuid.uuid4())
 
         # Cria a instância de Usuario
-        novo_usuario = Usuario(id=novo_id, email=form.email.data)
+        novo_usuario = Usuario(id=novo_id, email=form.email.data, nome=form.nome.data)
         novo_usuario.definir_senha(form.senha.data)
 
         # Salva no banco de dados
         db.session.add(novo_usuario)
         db.session.commit()
 
-        flash("Cadastro realizado com sucesso!", "success")
-        return redirect(url_for("auth.login"))
+        login_user(novo_usuario)
+        flash("Conta criada com sucesso! Bem-vindo ao Juridiquê.", "success")
+        return redirect(url_for("interpreter.index"))
 
     return render_template("auth/cadastro.html", form=form)
 
@@ -68,4 +69,37 @@ def logout():
     logout_user()
     flash("Você saiu da sua conta.", "info")
     return redirect(url_for("auth.login"))
+    return redirect(url_for("auth.login"))
 
+@auth_bp.route("/perfil", methods=["GET", "POST"])
+@login_required
+def perfil():
+    from app.forms.auth_forms import PerfilForm
+    form = PerfilForm(obj=current_user)
+    
+    # Remover validadores de tamanho de senha se ela não for digitada
+    if not form.nova_senha.data:
+        form.nova_senha.validators = []
+        form.confirmar_nova_senha.validators = []
+
+    if form.validate_on_submit():
+        # Se preencheu senha atual, validar e alterar
+        if form.senha_atual.data or form.nova_senha.data:
+            if not current_user.verificar_senha(form.senha_atual.data):
+                flash("A senha atual está incorreta.", "danger")
+                return redirect(url_for("auth.perfil"))
+            if not form.nova_senha.data:
+                flash("Você deve preencher a nova senha.", "danger")
+                return redirect(url_for("auth.perfil"))
+            if form.nova_senha.data != form.confirmar_nova_senha.data:
+                flash("A confirmação da nova senha não confere.", "danger")
+                return redirect(url_for("auth.perfil"))
+                
+            current_user.definir_senha(form.nova_senha.data)
+            
+        current_user.nome = form.nome.data
+        db.session.commit()
+        flash("Perfil atualizado com sucesso!", "success")
+        return redirect(url_for("auth.perfil"))
+        
+    return render_template("auth/perfil.html", form=form)

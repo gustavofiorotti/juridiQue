@@ -22,12 +22,12 @@ from google.api_core.exceptions import ResourceExhausted
 # ---------------------------------------------------------------------------
 _SYSTEM_INSTRUCTION: str = (
     "Você é um assistente jurídico especialista em traduzir e descomplicar "
-    "documentos de processos judiciais (juridiquês) para linguagem simples, "
+    "documentos jurídicos (como processos judiciais, projetos de lei, despachos, etc) para linguagem simples, "
     "acessível a cidadãos comuns sem formação jurídica.\n\n"
     "REGRA ABSOLUTA: sua resposta DEVE ser exclusivamente um objeto JSON "
     "válido, sem nenhum texto antes ou depois, contendo EXATAMENTE as "
     "seguintes chaves:\n"
-    "- \"resumo\": (string) Resumo claro e acessível sobre o que trata o processo.\n"
+    "- \"resumo\": (string) Resumo claro e acessível sobre o que trata o documento.\n"
     "- \"termos\": (array) Lista de objetos, cada um com as chaves "
     "\"termo\" (o jargão jurídico) e \"significado\" (sua explicação simples)."
 )
@@ -150,7 +150,7 @@ class JuridicoLLMService:
 
     def traduzir_processo(self, texto: str) -> dict[str, Any]:
         """
-        Envia o texto do processo para o Gemini e retorna um dicionário
+        Envia o texto do documento para o Gemini e retorna um dicionário
         estruturado com 'resumo' e 'termos'.
 
         Toda a lógica de rede está encapsulada aqui — blueprints e views
@@ -173,7 +173,10 @@ class JuridicoLLMService:
             current_app.logger.error(
                 "[LLM] GEMINI_API_KEY ausente na config. Abortando tradução."
             )
-            return _erro_generico()
+            return {
+                "resumo": "⚠️ Erro de Configuração: A chave da API do Google Gemini (GEMINI_API_KEY) não foi encontrada. Para que o Juridiquê consiga analisar e traduzir o documento conectando-se à IA, você precisa colar a sua chave da API no arquivo .env que está aberto no seu editor.",
+                "termos": []
+            }
 
         # --- 2. Instancia o modelo ---
         modelo: Optional[genai.GenerativeModel] = self._criar_modelo(
@@ -190,7 +193,7 @@ class JuridicoLLMService:
                 f"({len(texto)} caracteres de entrada)."
             )
             response = modelo.generate_content(
-                f"Por favor, traduza o seguinte processo judicial:\n\n{texto}"
+                f"Por favor, traduza o seguinte documento jurídico:\n\n{texto}"
             )
             resposta_texto = response.text
             current_app.logger.info("[LLM] Resposta recebida com sucesso.")

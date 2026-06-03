@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Página Principal — Facilitador Jurídico{% endblock %}
+{% block title %}Página Principal | Juridiquê{% endblock %}
 
 {% block content %}
 
@@ -8,6 +8,7 @@
    SEÇÃO 1 — Formulário de Upload do PDF
    ═══════════════════════════════════════════════════════════════════ #}
 <div class="box">
+    <h1 class="title is-4 mb-5">Bem-vindo(a), {{ current_user.nome.split()[0] if current_user.nome else 'Usuário' }}!</h1>
     <h2 class="title is-4">
         <span class="icon has-text-primary"><i class="fas fa-cloud-upload-alt"></i></span>
         Envie seu documento
@@ -17,7 +18,7 @@
         fará a leitura e entregará um resumo claro.
     </p>
 
-    <form method="POST" enctype="multipart/form-data" action="{{ url_for('interpreter.index') }}">
+    <form method="POST" enctype="multipart/form-data" action="{{ url_for('interpreter.index') }}" onsubmit="if(document.getElementById('arquivo_pdf').files.length > 0) document.getElementById('ai-loading-overlay').classList.add('is-active');">
         <!-- Injeção segura do Token CSRF habilitado no Flask-WTF -->
         {{ form.hidden_tag() }}
 
@@ -56,7 +57,7 @@
             <div class="control">
                 <button type="submit" class="button is-primary is-fullwidth is-medium">
                     <span class="icon"><i class="fas fa-magic"></i></span>
-                    <span>Traduzir Processo</span>
+                    <span>Traduzir documento</span>
                 </button>
             </div>
         </div>
@@ -108,8 +109,7 @@
                             <span class="icon is-small mr-1">
                                 <i class="fas fa-calendar-alt"></i>
                             </span>
-                            {# .strftime formata no padrão brasileiro DD/MM/AAAA #}
-                            {{ doc.data_submissao.strftime('%d/%m/%Y') }}
+                            {{ doc.data_submissao | format_datetime_local }}
                         </span>
                     </span>
                 </header>
@@ -124,7 +124,8 @@
                                mantendo o card compacto e legível.
                             #}
                             <p class="has-text-justified has-text-grey-dark">
-                                {{ doc.resumo_gerado_llm|truncate(200) }}
+                                {% set dados = doc.resumo_gerado_llm | from_json %}
+                                {{ dados.resumo | truncate(200) }}
                             </p>
                         {% else %}
                             <p class="has-text-grey is-italic">
@@ -139,13 +140,7 @@
 
                 {# ── card-footer ──────────────────────────────── #}
                 <footer class="card-footer">
-                    {#
-                       Botão preparado para futura rota de detalhes.
-                       Atualmente aponta para '#' como placeholder
-                       até a implementação da view de análise completa.
-                    #}
-                    <a href="#" class="card-footer-item has-text-info"
-                       title="Funcionalidade em desenvolvimento">
+                    <a href="{{ url_for('interpreter.ver_analise', id=doc.id) }}" class="card-footer-item has-text-info">
                         <span class="icon is-small mr-1">
                             <i class="fas fa-search-plus"></i>
                         </span>
@@ -155,6 +150,13 @@
 
             </div>
         {% endfor %}
+        
+        <div class="has-text-centered mt-4 mb-6">
+            <a href="{{ url_for('interpreter.historico') }}" class="button is-link is-outlined">
+                <span class="icon"><i class="fas fa-list"></i></span>
+                <span>Ver todo o histórico</span>
+            </a>
+        </div>
 
     {% else %}
 

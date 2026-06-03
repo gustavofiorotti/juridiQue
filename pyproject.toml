@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "facilitador-processos-judiciais"
+name = "Juridiquê"
 version = "0.1.0"
-description = "Facilitador de Entendimento de Processos Judiciais"
+description = "Facilitador de Entendimento de documentos judiciais"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

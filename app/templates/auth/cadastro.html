@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Cadastro - Facilitador Jurídico{% endblock %}
+{% block title %}Cadastro | Juridiquê{% endblock %}
 
 {% block content %}
 <div class="columns is-centered">
@@ -24,6 +24,26 @@
             <form method="POST">
                 {{ form.hidden_tag() }}
                 
+                <!-- Campo Nome -->
+                <div class="field">
+                    {{ form.nome.label(class="label") }}
+                    <div class="control has-icons-left">
+                        {% if form.nome.errors %}
+                            {{ form.nome(class="input is-danger", placeholder="Seu nome completo") }}
+                        {% else %}
+                            {{ form.nome(class="input", placeholder="Seu nome completo") }}
+                        {% endif %}
+                        <span class="icon is-small is-left">
+                            <i class="fas fa-user"></i>
+                        </span>
+                    </div>
+                    {% if form.nome.errors %}
+                        {% for error in form.nome.errors %}
+                            <p class="help is-danger">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
                 <!-- Campo E-mail -->
                 <div class="field">
                     {{ form.email.label(class="label") }}

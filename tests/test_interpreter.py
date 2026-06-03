@@ -31,7 +31,7 @@ def test_render_index_page(client):
     assert response.status_code == 200
     
     html = response.data.decode('utf-8')
-    assert "Facilitador de Processos" in html
+    assert "Juridiquê" in html
     assert "Envie seu documento" in html
 
 

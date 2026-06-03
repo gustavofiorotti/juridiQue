@@ -1,47 +1,80 @@
-{% extends "base.html" %}
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="content">
-    <div class="box">
-        <h2 class="title is-4"><span class="icon has-text-primary"><i class="fas fa-file-alt"></i></span> Resumo do Processo</h2>
-        <!-- O mecanismo padrão de scape "{{ variavel }}" do Jinja2 irá converter qualquer tentativa de injeção de HTML para texto puro -->
-        <p class="is-size-5 has-text-justified">{{ dados_llm.resumo }}</p>
+  <div class="mb-4">
+    <a href="javascript:history.back()" class="button is-light is-small">
+      <span class="icon"><i class="fas fa-arrow-left"></i></span>
+      <span>Voltar</span>
+    </a>
+  </div>
+  <div class="box">
+    <h2 class="title is-4">
+      <span class="icon has-text-primary"><i class="fas fa-file-alt"></i></span>
+      Resumo do documento
+    </h2>
+    <!-- O mecanismo padrão de scape "{{ variavel }}" do Jinja2 irá converter qualquer tentativa de injeção de HTML para texto puro -->
+    <p class="is-size-5 has-text-justified">{{ dados_llm.resumo }}</p>
+  </div>
+
+  {% if dados_llm.termos and dados_llm.termos|length > 0 %}
+  <div class="box mt-4">
+    <h3 class="title is-4">
+      <span class="icon has-text-info"><i class="fas fa-book-open"></i></span>
+      Dicionário de Termos
+    </h3>
+    <p class="subtitle is-6 mb-4">
+      Passe o mouse sobre as tags coloridas para ver o significado ou confira a
+      tabela abaixo.
+    </p>
+
+    <!-- Renderizando os tooltips via Tags do Bulma e atributo 'title' nativo para acessibilidade -->
+    <div class="tags are-medium">
+      {% for termo in dados_llm.termos %}
+      <!-- Jinja escapes the outputs automatically -->
+      <span
+        class="tag is-info is-light juridiquess-tooltip"
+        title="{{ termo.significado }}"
+        style="white-space: normal; height: auto; padding: 0.5rem; text-align: center;"
+      >
+        {{ termo.termo }}
+      </span>
+      {% endfor %}
     </div>
 
-    {% if dados_llm.termos and dados_llm.termos|length > 0 %}
-    <div class="box mt-4">
-        <h3 class="title is-4"><span class="icon has-text-info"><i class="fas fa-book-open"></i></span> Dicionário de Termos</h3>
-        <p class="subtitle is-6 mb-4">Passe o mouse sobre as tags coloridas para ver o significado ou confira a tabela abaixo.</p>
-        
-        <!-- Renderizando os tooltips via Tags do Bulma e atributo 'title' nativo para acessibilidade -->
-        <div class="tags are-medium">
-            {% for termo in dados_llm.termos %}
-                <!-- Jinja escapes the outputs automatically -->
-                <span class="tag is-info is-light juridiquess-tooltip" title="{{ termo.significado }}">
-                    {{ termo.termo }}
-                </span>
-            {% endfor %}
-        </div>
-        
-        <hr>
-        <h4 class="title is-6">Detalhes:</h4>
-        <ul>
-            {% for termo in dados_llm.termos %}
-                <li>
-                    <strong>{{ termo.termo }}:</strong> {{ termo.significado }}
-                </li>
-            {% endfor %}
-        </ul>
+    <hr />
+    <h4 class="title is-6">Detalhes:</h4>
+    <ul>
+      {% for termo in dados_llm.termos %}
+      <li><strong>{{ termo.termo }}:</strong> {{ termo.significado }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="field is-grouped mt-5">
+    <div class="control">
+      <a href="{{ url_for('interpreter.index') }}" class="button is-light">
+        <span class="icon"><i class="fas fa-file-upload"></i></span>
+        <span>Analisar novo documento</span>
+      </a>
+    </div>
+    {% if processo %}
+    <div class="control">
+      <form action="{{ url_for('interpreter.reanalisar', id=processo.id) }}" method="POST" onsubmit="document.getElementById('ai-loading-overlay').classList.add('is-active');">
+        <button type="submit" class="button is-primary is-outlined">
+          <span class="icon"><i class="fas fa-redo-alt"></i></span>
+          <span>Reanalisar</span>
+        </button>
+      </form>
+    </div>
+    <div class="control">
+      <form action="{{ url_for('interpreter.apagar_historico', id=processo.id) }}" method="POST">
+        <button type="submit" class="button is-danger is-outlined" onclick="return confirm('Tem certeza que deseja apagar este documento do histórico?');">
+          <span class="icon"><i class="fas fa-trash-alt"></i></span>
+          <span>Apagar</span>
+        </button>
+      </form>
     </div>
     {% endif %}
-    
-    <div class="field is-grouped mt-5">
-        <div class="control">
-            <a href="{{ url_for('interpreter.index') }}" class="button is-light">
-                <span class="icon"><i class="fas fa-arrow-left"></i></span>
-                <span>Analisar novo documento</span>
-            </a>
-        </div>
-    </div>
+  </div>
 </div>
 {% endblock %}

@@ -31,6 +31,23 @@ def create_app(test_config=None) -> Flask:
     @app.route("/")
     def root():
         return redirect(url_for("auth.login"))
+        
+    # 5. Filtros Jinja2 Customizados
+    @app.template_filter('from_json')
+    def from_json_filter(value):
+        import json
+        try:
+            return json.loads(value)
+        except (ValueError, TypeError):
+            return {}
+
+    @app.template_filter('format_datetime_local')
+    def format_datetime_local(value):
+        from datetime import timedelta
+        if not value:
+            return ""
+        local_time = value - timedelta(hours=3)
+        return local_time.strftime('%d/%m/%Y às %H:%M')
     
     return app
 

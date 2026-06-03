@@ -25,6 +25,10 @@ class Usuario(UserMixin, db.Model):
         nullable=False,
         index=True
     )
+    nome = db.Column(
+        db.String(100),
+        nullable=True
+    )
     senha_hash = db.Column(
         db.String(256),
         nullable=False
