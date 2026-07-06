@@ -1,20 +1,15 @@
 import io
 
 def logar_usuario(client):
-    """Auxiliar para cadastrar e logar um usuário de teste."""
+    """Auxiliar para cadastrar e logar um usuário de teste.
+    O cadastro já faz login automático via login_user()."""
     client.post(
         "/cadastro",
         data={
+            "nome": "Usuário Teste",
             "email": "user_teste@teste.com",
             "senha": "senha_valida_123",
             "confirmar_senha": "senha_valida_123",
-        },
-    )
-    client.post(
-        "/login",
-        data={
-            "email": "user_teste@teste.com",
-            "senha": "senha_valida_123",
         },
     )
 

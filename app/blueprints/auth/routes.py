@@ -69,7 +69,6 @@ def logout():
     logout_user()
     flash("Você saiu da sua conta.", "info")
     return redirect(url_for("auth.login"))
-    return redirect(url_for("auth.login"))
 
 @auth_bp.route("/perfil", methods=["GET", "POST"])
 @login_required

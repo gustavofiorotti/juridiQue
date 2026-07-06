@@ -27,15 +27,16 @@ def test_cadastro_success(app, client):
     response = client.post(
         "/cadastro",
         data={
+            "nome": "Novo Usuário",
             "email": "novo_usuario@teste.com",
             "senha": "senhadeseguranca123",
             "confirmar_senha": "senhadeseguranca123",
         },
     )
 
-    # Deve redirecionar para a rota de login
+    # Após cadastro, o sistema faz login automático e redireciona para o painel
     assert response.status_code == 302
-    assert response.headers["Location"] == "/login"
+    assert response.headers["Location"] == "/painel/"
 
     # Verifica se o usuário foi realmente inserido no banco de dados com senha hasheada
     with app.app_context():
@@ -53,16 +54,21 @@ def test_cadastro_duplicate_email(app, client):
     client.post(
         "/cadastro",
         data={
+            "nome": "Usuário Original",
             "email": "duplicado@teste.com",
             "senha": "senha12345678",
             "confirmar_senha": "senha12345678",
         },
     )
 
+    # Logout para poder testar o cadastro duplicado sem estar autenticado
+    client.get("/logout")
+
     # Tenta registrar o segundo com o mesmo e-mail
     response = client.post(
         "/cadastro",
         data={
+            "nome": "Outro Usuário",
             "email": "duplicado@teste.com",
             "senha": "outrasenha12345",
             "confirmar_senha": "outrasenha12345",
@@ -99,11 +105,15 @@ def test_login_success(client):
     client.post(
         "/cadastro",
         data={
+            "nome": "Login Sucesso",
             "email": "login_sucesso@teste.com",
             "senha": "senha_valida_123",
             "confirmar_senha": "senha_valida_123",
         },
     )
+
+    # Logout para poder testar o login separadamente
+    client.get("/logout")
 
     # Tenta fazer login
     response = client.post(
@@ -129,11 +139,15 @@ def test_login_invalid_credentials(client):
     client.post(
         "/cadastro",
         data={
+            "nome": "Login Falha",
             "email": "login_falha@teste.com",
             "senha": "senha_valida_123",
             "confirmar_senha": "senha_valida_123",
         },
     )
+
+    # Logout para poder testar login com credenciais inválidas
+    client.get("/logout")
 
     # Login com senha incorreta
     response = client.post(

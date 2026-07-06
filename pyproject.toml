@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Juridiquê"
+name = "juridioque"
 version = "0.1.0"
 description = "Facilitador de Entendimento de documentos judiciais"
 readme = "README.md"
@@ -28,3 +28,6 @@ dependencies = [
 dev = [
     "pytest>=8.0.0"
 ]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
